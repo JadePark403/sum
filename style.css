@@ -441,3 +441,60 @@ body.on-sos .help-bar { display: none; }
   .thought-step, .thought-list li { animation: none; }
 }
 .thought-step[data-step="4"] { padding-top: 24px; }
+
+/* =========================================================
+   첫걸음 만들기
+   ========================================================= */
+.start-step { animation: fade-in var(--slow) ease; }
+.start-step > .muted { margin: 0 0 16px; font-size: 15px; }
+.start-step[data-sstep="4"] { padding-top: 24px; }
+
+.task-name {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.wide-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.wide-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.idea-chips { margin-top: 12px; }
+
+.first-step { margin: 0 0 8px; font-size: 21px; font-weight: 600; overflow-wrap: anywhere; }
+
+/* 2분 타이머: 원 테두리가 천천히 줄어들어요 */
+.timer { position: relative; width: min(220px, 60vw); aspect-ratio: 1; margin: 16px auto 4px; }
+.timer svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer-track, .timer-bar { fill: none; stroke-width: 6; }
+.timer-track { stroke: var(--line); }
+.timer-bar {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-dasharray: 339.3;     /* 원 둘레 = 2 × 3.14 × 54 */
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear;
+}
+.timer-text {
+  position: absolute; inset: 0; margin: 0;
+  display: grid; place-items: center;
+  font-size: 40px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-deep);
+}
+#start-next { margin-top: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .start-step { animation: none; }
+  .timer-bar { transition: none; }
+}

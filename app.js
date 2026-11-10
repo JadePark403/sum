@@ -53,7 +53,10 @@ const MOOD_KEY = 'soom.todayMood';
 const moodSuggestions = {
   ok: {
     text: '좋아요. 숨을 한 번 고르고 하루를 가볍게 이어 가 볼까요?',
-    actions: [{ label: '1분 숨 고르기', href: '#/breathe?min=1', main: true }],
+    actions: [
+      { label: '1분 숨 고르기', href: '#/breathe?min=1', main: true },
+      { label: '미뤄 둔 일 조금만', href: '#/start' },
+    ],
   },
   tense: {
     text: '그럴 수 있어요. 몸부터 조금 풀어 볼까요?',
@@ -454,6 +457,185 @@ document.getElementById('thought-finish').addEventListener('click', () => {
   window.scrollTo(0, 0);
 });
 
+/* =========================================================
+   첫걸음 만들기
+   일 하나 → 2분 첫걸음 → 2분 타이머 → "시작했어요"
+   할 일 목록이 아니에요. 한 번에 하나만 다루고, 마치면 지워요.
+   ========================================================= */
+const START_KEY = 'soom.startDraft';
+const TIMER_MS = 2 * 60 * 1000;
+const RING = 339.3;                            // 타이머 원의 둘레 (style.css와 같은 값)
+const FIRST_STEP_IDEAS = ['필요한 것 꺼내 놓기', '파일이나 공책 열기', '제목만 적기', '딱 한 줄만 쓰기', '자리에 앉아 보기'];
+
+let start = { step: 1, task: '', first: '' };
+
+function saveStart() {
+  try { localStorage.setItem(START_KEY, JSON.stringify(start)); } catch (e) { /* 무시 */ }
+}
+function loadStart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(START_KEY));
+    // 4단계("시작했어요")까지 갔던 기록은 새로 시작해요
+    if (saved && typeof saved.task === 'string' && saved.step < 4) return saved;
+  } catch (e) { /* 무시 */ }
+  return { step: 1, task: '', first: '' };
+}
+function clearStart() {
+  start = { step: 1, task: '', first: '' };
+  try { localStorage.removeItem(START_KEY); } catch (e) { /* 무시 */ }
+}
+
+const taskInput = document.getElementById('task-input');
+const firstInput = document.getElementById('first-input');
+const toTimer = document.getElementById('to-timer');
+const timerText = document.getElementById('timer-text');
+const timerBar = document.getElementById('timer-bar');
+const timerStart = document.getElementById('timer-start');
+const timerStop = document.getElementById('timer-stop');
+const timerBack = document.getElementById('timer-back');
+let timerInterval = null;
+
+function renderStart() {
+  document.querySelectorAll('.start-step').forEach((sec) => {
+    sec.hidden = Number(sec.dataset.sstep) !== start.step;
+  });
+  document.querySelectorAll('[data-sdot]').forEach((dot) => {
+    dot.classList.toggle('on', Number(dot.dataset.sdot) === start.step);
+  });
+  document.getElementById('start-dots').hidden = start.step === 4;
+
+  taskInput.value = start.task;
+  document.getElementById('task-name').textContent = start.task;
+  firstInput.value = start.first;
+  toTimer.disabled = !start.first.trim();
+  document.getElementById('first-step-text').textContent = start.first;
+}
+
+function goStartStep(step) {
+  start.step = step;
+  saveStart();
+  renderStart();
+  window.scrollTo(0, 0);
+}
+
+// 1단계 → 2단계
+document.getElementById('task-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const task = taskInput.value.trim();
+  if (!task) { taskInput.focus(); return; }
+  start.task = task;
+  goStartStep(2);
+});
+
+// 첫걸음 예시: 누르면 입력칸에 채워 줘요 (고쳐 써도 돼요)
+const ideaChips = document.getElementById('idea-chips');
+FIRST_STEP_IDEAS.forEach((idea) => {
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'chip';
+  chip.textContent = idea;
+  chip.addEventListener('click', () => {
+    firstInput.value = idea;
+    firstInput.dispatchEvent(new Event('input'));
+  });
+  ideaChips.appendChild(chip);
+});
+
+firstInput.addEventListener('input', () => {
+  start.first = firstInput.value;
+  toTimer.disabled = !start.first.trim();
+  saveStart();
+});
+
+// 2단계 → 3단계
+document.getElementById('first-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  start.first = firstInput.value.trim();
+  if (!start.first) return;
+  resetTimerView();
+  goStartStep(3);
+});
+
+document.querySelectorAll('[data-sgo]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    stopTimer();
+    goStartStep(Number(btn.dataset.sgo));
+  });
+});
+
+/* ---------- 2분 타이머 ---------- */
+function drawTimer(remainingMs) {
+  timerText.textContent = formatTime(remainingMs);
+  timerBar.style.strokeDashoffset = String(RING * (1 - remainingMs / TIMER_MS));
+}
+
+function resetTimerView() {
+  // 원을 꽉 찬 모양으로 "순식간에" 되돌리기 (이때만 움직임 효과를 잠깐 꺼요)
+  timerBar.style.transition = 'none';
+  drawTimer(TIMER_MS);
+  void timerBar.getBoundingClientRect();       // 브라우저가 바뀐 모양을 먼저 그리게 해요
+  timerBar.style.transition = '';
+  timerStart.hidden = false;
+  timerBack.hidden = false;
+  timerStop.hidden = true;
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    releaseScreen();
+  }
+}
+
+function runTimer() {
+  stopTimer();
+  resetTimerView();
+  timerStart.hidden = true;
+  timerBack.hidden = true;
+  timerStop.hidden = false;
+  keepScreenOn();
+  // 시계 시각을 기준으로 계산해서, 폰이 잠깐 느려져도 시간이 밀리지 않아요
+  const endAt = Date.now() + TIMER_MS;
+  timerInterval = setInterval(() => {
+    const left = endAt - Date.now();
+    drawTimer(Math.max(0, left));
+    if (left <= 0) finishStart(true);
+  }, 250);
+}
+
+// 끝까지 해도, 중간에 멈춰도 똑같이 "시작했어요"예요
+function finishStart(fullTime) {
+  stopTimer();
+  document.getElementById('start-result').textContent = fullTime
+    ? '2분이 지났어요. 시작한 것, 그게 제일 어려운 부분이었어요.'
+    : '멈춰도 괜찮아요. 시작했다는 게 중요해요.';
+  goStartStep(4);
+}
+
+timerStart.addEventListener('click', runTimer);
+timerStop.addEventListener('click', () => finishStart(false));
+
+// 멈춰도 돼요 → 오늘은 여기까지
+document.getElementById('start-done').addEventListener('click', () => {
+  clearStart();
+  location.hash = '#/';
+  setTimeout(() => showToast('오늘 시작한 걸로 충분해요.'), 300);
+});
+
+// 조금 더 할래요 → 같은 첫걸음으로 2분 더
+document.getElementById('start-more').addEventListener('click', () => {
+  goStartStep(3);
+  runTimer();
+});
+
+// 다음 첫걸음 정하기 → 같은 일, 새 첫걸음
+document.getElementById('start-next').addEventListener('click', () => {
+  start.first = '';
+  goStartStep(2);
+  firstInput.focus();
+});
+
 /* ---------- 화면이 바뀔 때마다 ---------- */
 function onScreenChange(name) {
   document.body.classList.toggle('on-sos', name === 'sos');
@@ -462,6 +644,13 @@ function onScreenChange(name) {
   if (name !== 'sos') sos.stop();
   if (name !== 'breathe') resetBreathe();
   if (name !== 'sos' && name !== 'breathe') releaseScreen();
+
+  if (name !== 'start') stopTimer();
+  if (name === 'start') {
+    start = loadStart();                       // 쓰다 만 게 있으면 이어서
+    if (start.step === 3) resetTimerView();    // 타이머는 다시 "시작하기"부터
+    renderStart();
+  }
 
   if (name === 'thought') {
     thought = loadThought();                   // 쓰다 만 게 있으면 이어서

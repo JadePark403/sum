@@ -47,10 +47,10 @@
         <span class="card-title">생각이 꼬리를 물 때</span>
         <span class="card-sub">생각을 적고, 다른 쪽에서 바라보기</span>
       </a>
-      <button class="card" data-soon>
+      <a href="#/start" class="card">
         <span class="card-title">시작이 안 될 때</span>
         <span class="card-sub">2분짜리 첫걸음 하나만</span>
-      </button>
+      </a>
     </section>
   </main>
 
@@ -165,6 +165,71 @@
         <a href="#/breathe?min=1" class="btn-soft btn-big">1분 숨 고르기</a>
         <a href="#/" class="btn-main btn-big">홈으로</a>
       </div>
+    </section>
+  </main>
+
+  <!-- ===== 첫걸음 만들기 ===== -->
+  <main id="screen-start" class="screen" data-screen="start" hidden>
+    <a href="#/" class="back">← 홈으로</a>
+    <h1 class="screen-title">시작이 안 될 때</h1>
+    <div class="step-dots" id="start-dots" aria-hidden="true">
+      <span data-sdot="1"></span><span data-sdot="2"></span><span data-sdot="3"></span>
+    </div>
+
+    <!-- 1단계: 일 하나만 -->
+    <section class="start-step" data-sstep="1">
+      <h2 class="step-title">미뤄 둔 일, 딱 하나만 적어요</h2>
+      <p class="muted">가장 마음에 걸리는 거 하나면 돼요.</p>
+      <form id="task-form" class="line-form">
+        <input id="task-input" type="text" maxlength="80" autocomplete="off"
+               placeholder="예: 보고서 쓰기" aria-label="미뤄 둔 일">
+        <button class="btn-main" type="submit">다음</button>
+      </form>
+    </section>
+
+    <!-- 2단계: 2분짜리 첫걸음으로 쪼개기 -->
+    <section class="start-step" data-sstep="2" hidden>
+      <p class="task-name" id="task-name"></p>
+      <h2 class="step-title">2분 안에 할 수 있는 첫걸음은 뭘까요?</h2>
+      <p class="muted">너무 작아서 웃길 정도면 딱 좋아요.</p>
+      <form id="first-form">
+        <input id="first-input" class="wide-input" type="text" maxlength="80" autocomplete="off"
+               placeholder="예: 파일 열고 제목만 적기" aria-label="첫걸음">
+        <div class="chips idea-chips" id="idea-chips"></div>
+        <div class="step-actions">
+          <button type="button" class="btn-soft btn-big" data-sgo="1">이전</button>
+          <button type="submit" class="btn-main btn-big" id="to-timer" disabled>이걸로 할게요</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 3단계: 2분 타이머 -->
+    <section class="start-step center" data-sstep="3" hidden>
+      <p class="muted small">첫걸음</p>
+      <p class="first-step" id="first-step-text"></p>
+      <div class="timer">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="timer-track" cx="60" cy="60" r="54"></circle>
+          <circle class="timer-bar" id="timer-bar" cx="60" cy="60" r="54"></circle>
+        </svg>
+        <p class="timer-text" id="timer-text" role="timer">2:00</p>
+      </div>
+      <div class="step-actions center-actions">
+        <button class="btn-soft btn-big" data-sgo="2" id="timer-back">이전</button>
+        <button class="btn-main btn-big" id="timer-start">시작하기</button>
+        <button class="btn-soft btn-big" id="timer-stop" hidden>여기서 멈출래요</button>
+      </div>
+    </section>
+
+    <!-- 4단계: 시작했어요 -->
+    <section class="start-step center" data-sstep="4" hidden>
+      <h2 class="step-title">시작했어요</h2>
+      <p id="start-result"></p>
+      <div class="step-actions center-actions">
+        <button class="btn-soft btn-big" id="start-done">멈춰도 돼요</button>
+        <button class="btn-main btn-big" id="start-more">조금 더 할래요</button>
+      </div>
+      <button class="text-btn" id="start-next">다음 첫걸음 정하기</button>
     </section>
   </main>
 
