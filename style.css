@@ -339,3 +339,105 @@ body.on-sos .help-bar { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .done-message { animation: none; }
 }
+
+/* =========================================================
+   생각 사슬 끊기
+   ========================================================= */
+.step-dots { display: flex; justify-content: center; gap: 8px; margin: 10px 0 18px; }
+.step-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--line);
+  transition: background var(--slow), width var(--slow);
+}
+.step-dots span.on { background: var(--accent); width: 22px; border-radius: 999px; }
+
+.thought-step { animation: fade-in var(--slow) ease; }
+.step-title { margin: 0 0 4px; font-size: 20px; font-weight: 600; line-height: 1.45; }
+.thought-step > .muted { margin: 0 0 16px; font-size: 15px; }
+.small { font-size: 14px; }
+
+.line-form { display: flex; gap: 8px; }
+.line-form input,
+#friend-text {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;          /* 글자 크기 17px — 아이폰에서 입력할 때 화면이 확대되지 않아요 */
+}
+#friend-text { width: 100%; resize: vertical; margin-top: 4px; }
+.line-form input:focus, #friend-text:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.thought-list, .sort-list, .quote-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.thought-list li {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 8px 10px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  animation: fade-in var(--slow) ease;
+}
+.thought-list li span { flex: 1; overflow-wrap: anywhere; }
+.remove {
+  flex: none; width: 36px; height: 36px;
+  border: 0; border-radius: 50%;
+  background: none; color: var(--muted); font-size: 20px; line-height: 1;
+}
+
+.sort-list li {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.sort-list p { margin: 0 0 10px; overflow-wrap: anywhere; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  font-size: 14px;
+  color: var(--muted);
+  transition: background var(--slow), border-color var(--slow), color var(--slow);
+}
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-deep); font-weight: 600; }
+
+.quote-list { margin: 0 0 12px; }
+.quote-list li {
+  padding: 8px 14px;
+  border-left: 3px solid var(--accent-soft);
+  color: var(--muted);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.tag { display: inline-block; margin-left: 6px; font-size: 12px; color: var(--accent-deep); }
+
+.step-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+.step-actions .text-btn { margin-right: auto; }
+.center-actions { justify-content: center; }
+.btn-main:disabled { opacity: 0.45; cursor: default; }
+.text-btn {
+  padding: 8px 4px; border: 0; background: none;
+  color: var(--muted); font-size: 14px;
+  text-decoration: underline; text-underline-offset: 4px;
+}
+
+.echo {
+  margin: 16px 0;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thought-step, .thought-list li { animation: none; }
+}
+.thought-step[data-step="4"] { padding-top: 24px; }

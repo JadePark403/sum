@@ -43,10 +43,10 @@
         <span class="card-title">숨 고르기</span>
         <span class="card-sub">1분, 3분 천천히 숨 쉬기</span>
       </a>
-      <button class="card" data-soon>
+      <a href="#/thought" class="card">
         <span class="card-title">생각이 꼬리를 물 때</span>
         <span class="card-sub">생각을 적고, 다른 쪽에서 바라보기</span>
-      </button>
+      </a>
       <button class="card" data-soon>
         <span class="card-title">시작이 안 될 때</span>
         <span class="card-sub">2분짜리 첫걸음 하나만</span>
@@ -104,6 +104,67 @@
         <a href="tel:119"><strong>119</strong><span>응급</span></a>
       </div>
       <p class="note muted">처음 겪는 가슴 통증이나 평소와 다른 증상이면 병원이나 119가 먼저예요.</p>
+    </section>
+  </main>
+
+  <!-- ===== 생각 사슬 끊기 ===== -->
+  <main id="screen-thought" class="screen" data-screen="thought" hidden>
+    <a href="#/" class="back">← 홈으로</a>
+    <h1 class="screen-title">생각이 꼬리를 물 때</h1>
+    <div class="step-dots" aria-hidden="true">
+      <span data-dot="1"></span><span data-dot="2"></span><span data-dot="3"></span>
+    </div>
+
+    <!-- 1단계: 한 줄씩 적기 -->
+    <section class="thought-step" data-step="1">
+      <h2 class="step-title">머릿속 생각을 한 줄씩 적어 봐요</h2>
+      <p class="muted">맞춤법도 순서도 상관없어요. 떠오르는 대로요.</p>
+      <form id="thought-form" class="line-form">
+        <input id="thought-input" type="text" maxlength="120" autocomplete="off"
+               placeholder="예: 내일 발표를 망칠 거야" aria-label="생각 한 줄">
+        <button class="btn-main" type="submit">적기</button>
+      </form>
+      <ul id="thought-list" class="thought-list"></ul>
+      <div class="step-actions">
+        <button class="text-btn" id="thought-clear" hidden>모두 지우기</button>
+        <button class="btn-main btn-big" id="to-step-2" disabled>다 적었어요</button>
+      </div>
+    </section>
+
+    <!-- 2단계: 나눠 보기 -->
+    <section class="thought-step" data-step="2" hidden>
+      <h2 class="step-title">이건 어떤 생각일까요?</h2>
+      <p class="muted">정답은 없어요. 잘 모르겠으면 그냥 두어도 돼요.</p>
+      <ul id="sort-list" class="sort-list"></ul>
+      <div class="step-actions">
+        <button class="btn-soft btn-big" data-go="1">이전</button>
+        <button class="btn-main btn-big" data-go="3">다음</button>
+      </div>
+    </section>
+
+    <!-- 3단계: 친구라면 뭐라고 해 줄까 -->
+    <section class="thought-step" data-step="3" hidden>
+      <h2 class="step-title">친구가 이 생각을 한다면, 뭐라고 해 줄까요?</h2>
+      <p class="muted">그 말을 나에게도 해 줘요. 한 줄이어도 충분해요.</p>
+      <ul id="friend-thoughts" class="quote-list"></ul>
+      <textarea id="friend-text" rows="4" maxlength="400" aria-label="친구에게 해 줄 말"
+                placeholder="예: 준비한 만큼은 할 수 있을 거야. 조금 떨려도 괜찮아."></textarea>
+      <div class="step-actions">
+        <button class="btn-soft btn-big" data-go="2">이전</button>
+        <button class="btn-main btn-big" id="thought-finish">여기까지 할게요</button>
+      </div>
+    </section>
+
+    <!-- 끝 -->
+    <section class="thought-step center" data-step="4" hidden>
+      <h2 class="step-title">잘했어요</h2>
+      <p>생각을 꺼내서 적어 보기만 해도, 그 생각과 조금 거리가 생겨요.</p>
+      <blockquote id="friend-echo" class="echo" hidden></blockquote>
+      <p class="muted small">적은 내용은 지금 지웠어요. 어디에도 보내지 않아요.</p>
+      <div class="step-actions center-actions">
+        <a href="#/breathe?min=1" class="btn-soft btn-big">1분 숨 고르기</a>
+        <a href="#/" class="btn-main btn-big">홈으로</a>
+      </div>
     </section>
   </main>
 

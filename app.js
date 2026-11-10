@@ -59,7 +59,7 @@ const moodSuggestions = {
     text: '그럴 수 있어요. 몸부터 조금 풀어 볼까요?',
     actions: [
       { label: '3분 숨 고르기', href: '#/breathe?min=3', main: true },
-      { label: '생각이 꼬리를 물 때', soon: true },
+      { label: '생각이 꼬리를 물 때', href: '#/thought' },
     ],
   },
   hard: {
@@ -297,6 +297,163 @@ document.getElementById('sos-better').addEventListener('click', () => {
   setTimeout(() => showToast('잘 견뎠어요. 천천히 쉬어 가요.'), 300);
 });
 
+/* =========================================================
+   생각 사슬 끊기
+   1. 한 줄씩 적기 → 2. 일어난 일 / 일어날 것 같은 일 나누기
+   → 3. 친구라면 뭐라고 해 줄까 → 끝
+   쓰는 도중의 내용만 이 기기에 잠깐 저장해요(화면을 나갔다 와도 이어서 쓰게).
+   마치면 바로 지워요. 정답도, 판정도 없어요.
+   ========================================================= */
+const THOUGHT_KEY = 'soom.thoughtDraft';
+const KIND_LABELS = { fact: '실제로 일어난 일', maybe: '일어날 것 같은 일' };
+
+function emptyThought() {
+  return { step: 1, lines: [], friend: '' };   // lines: [{ text, kind }]
+}
+
+let thought = emptyThought();
+
+function saveThought() {
+  try { localStorage.setItem(THOUGHT_KEY, JSON.stringify(thought)); } catch (e) { /* 무시 */ }
+}
+function loadThought() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(THOUGHT_KEY));
+    if (saved && Array.isArray(saved.lines) && saved.step < 4) return saved;
+  } catch (e) { /* 무시 */ }
+  return emptyThought();
+}
+function clearThought() {
+  thought = emptyThought();
+  try { localStorage.removeItem(THOUGHT_KEY); } catch (e) { /* 무시 */ }
+}
+
+const thoughtForm = document.getElementById('thought-form');
+const thoughtInput = document.getElementById('thought-input');
+const thoughtList = document.getElementById('thought-list');
+const sortList = document.getElementById('sort-list');
+const friendThoughts = document.getElementById('friend-thoughts');
+const friendText = document.getElementById('friend-text');
+const toStep2 = document.getElementById('to-step-2');
+const thoughtClear = document.getElementById('thought-clear');
+
+// 화면에 지금 단계를 그려 주는 함수
+function renderThought() {
+  document.querySelectorAll('.thought-step').forEach((sec) => {
+    sec.hidden = Number(sec.dataset.step) !== thought.step;
+  });
+  document.querySelectorAll('[data-dot]').forEach((dot) => {
+    dot.classList.toggle('on', Number(dot.dataset.dot) === thought.step);
+  });
+  document.querySelector('.step-dots').hidden = thought.step === 4;
+
+  // 1단계 목록
+  thoughtList.innerHTML = '';
+  thought.lines.forEach((line, i) => {
+    const li = document.createElement('li');
+    const span = document.createElement('span');
+    span.textContent = line.text;               // textContent: 적은 글을 글자 그대로 보여 줘요
+    const del = document.createElement('button');
+    del.className = 'remove';
+    del.textContent = '×';
+    del.setAttribute('aria-label', `"${line.text}" 지우기`);
+    del.addEventListener('click', () => {
+      thought.lines.splice(i, 1);
+      saveThought();
+      renderThought();
+    });
+    li.append(span, del);
+    thoughtList.appendChild(li);
+  });
+  toStep2.disabled = thought.lines.length === 0;
+  thoughtClear.hidden = thought.lines.length === 0;
+
+  // 2단계: 줄마다 두 가지 중 하나 (다시 누르면 선택 풀림)
+  sortList.innerHTML = '';
+  thought.lines.forEach((line) => {
+    const li = document.createElement('li');
+    const p = document.createElement('p');
+    p.textContent = line.text;
+    const chips = document.createElement('div');
+    chips.className = 'chips';
+    Object.entries(KIND_LABELS).forEach(([kind, label]) => {
+      const chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.textContent = label;
+      chip.setAttribute('aria-pressed', String(line.kind === kind));
+      chip.addEventListener('click', () => {
+        line.kind = line.kind === kind ? null : kind;
+        saveThought();
+        renderThought();
+      });
+      chips.appendChild(chip);
+    });
+    li.append(p, chips);
+    sortList.appendChild(li);
+  });
+
+  // 3단계: "일어날 것 같은 일"을 먼저 보여 줘요
+  friendThoughts.innerHTML = '';
+  const ordered = [...thought.lines].sort((a, b) => (b.kind === 'maybe') - (a.kind === 'maybe'));
+  ordered.forEach((line) => {
+    const li = document.createElement('li');
+    li.textContent = line.text;
+    if (line.kind) {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = KIND_LABELS[line.kind];
+      li.appendChild(tag);
+    }
+    friendThoughts.appendChild(li);
+  });
+  if (document.activeElement !== friendText) friendText.value = thought.friend;
+}
+
+function goThoughtStep(step) {
+  thought.step = step;
+  saveThought();
+  renderThought();
+  window.scrollTo(0, 0);
+}
+
+thoughtForm.addEventListener('submit', (e) => {
+  e.preventDefault();                          // 폼을 보내지 않고(새로고침 없이) 여기서 처리
+  const text = thoughtInput.value.trim();
+  if (!text) return;
+  thought.lines.push({ text, kind: null });
+  thoughtInput.value = '';
+  saveThought();
+  renderThought();
+  thoughtInput.focus();                        // 바로 다음 줄을 이어서 쓸 수 있게
+});
+
+toStep2.addEventListener('click', () => goThoughtStep(2));
+document.querySelectorAll('[data-go]').forEach((btn) => {
+  btn.addEventListener('click', () => goThoughtStep(Number(btn.dataset.go)));
+});
+
+thoughtClear.addEventListener('click', () => {
+  clearThought();
+  renderThought();
+  thoughtInput.focus();
+});
+
+friendText.addEventListener('input', () => {
+  thought.friend = friendText.value;
+  saveThought();
+});
+
+document.getElementById('thought-finish').addEventListener('click', () => {
+  const words = friendText.value.trim();
+  const echo = document.getElementById('friend-echo');
+  echo.textContent = words;
+  echo.hidden = !words;
+  clearThought();                              // 마치면 적은 내용은 지워요
+  thought.step = 4;
+  renderThought();
+  window.scrollTo(0, 0);
+});
+
 /* ---------- 화면이 바뀔 때마다 ---------- */
 function onScreenChange(name) {
   document.body.classList.toggle('on-sos', name === 'sos');
@@ -305,6 +462,11 @@ function onScreenChange(name) {
   if (name !== 'sos') sos.stop();
   if (name !== 'breathe') resetBreathe();
   if (name !== 'sos' && name !== 'breathe') releaseScreen();
+
+  if (name === 'thought') {
+    thought = loadThought();                   // 쓰다 만 게 있으면 이어서
+    renderThought();
+  }
 
   if (name === 'sos') startSos();
   if (name === 'breathe') {
