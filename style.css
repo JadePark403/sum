@@ -1,0 +1,235 @@
+/* =========================================================
+   색과 크기를 한곳에 모아 둔 "변수"예요.
+   여기만 바꾸면 앱 전체 색이 같이 바뀌어요.
+   ========================================================= */
+:root {
+  --bg: #eef4f8;            /* 옅은 안개색 바탕 */
+  --bg-soft: #e2edf4;
+  --surface: rgba(255, 255, 255, 0.72);
+  --text: #2e3f4f;
+  --muted: #5f7180;
+  --accent: #6a9ec0;        /* 차분한 하늘색 */
+  --accent-deep: #4c7a99;
+  --accent-soft: #d6e6f1;
+  --line: rgba(76, 122, 153, 0.18);
+  --radius: 20px;
+  --slow: 600ms;            /* 움직임은 느리고 부드럽게 */
+  color-scheme: light;
+}
+
+/* 폰이 어두운 화면 모드일 때 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #18232d;
+    --bg-soft: #1f2d39;
+    --surface: rgba(255, 255, 255, 0.06);
+    --text: #e3ecf2;
+    --muted: #a3b4c2;
+    --accent: #7fb0d0;
+    --accent-deep: #9cc3dd;
+    --accent-soft: #2a3d4d;
+    --line: rgba(156, 195, 221, 0.18);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  min-height: 100dvh;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%) fixed;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  word-break: keep-all;     /* 한국어 단어가 중간에 끊기지 않게 */
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+button, a { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { text-decoration: none; }
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* ===== 화면 공통 ===== */
+.screen {
+  width: 100%;
+  max-width: 480px;          /* 큰 화면에서도 폰 너비로 가운데 정렬 */
+  flex: 1;
+  padding: calc(env(safe-area-inset-top) + 28px) 20px 24px;
+  animation: fade-in var(--slow) ease;
+}
+.screen[hidden] { display: none; }
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ===== 홈 ===== */
+.app-name {
+  margin: 0;
+  color: var(--accent-deep);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.greeting {
+  margin: 4px 0 20px;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.mood-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.mood-btn {
+  min-height: 56px;
+  padding: 8px 6px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  font-size: 15px;
+  transition: background var(--slow), border-color var(--slow);
+}
+.mood-btn[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.suggestion {
+  margin-top: 12px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  animation: fade-in var(--slow) ease;
+}
+.suggestion p { margin: 0 0 12px; }
+.suggestion .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.btn-soft {
+  display: inline-block;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+.btn-main {
+  display: inline-block;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-deep);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+/* 큰 SOS 버튼 — 빨간색 대신 깊고 차분한 파랑 */
+.sos-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin: 24px 0;
+  min-height: 132px;
+  border-radius: 28px;
+  background: linear-gradient(160deg, #7fa9c9 0%, #4f7f9f 100%);
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(79, 127, 159, 0.28);
+  transition: transform var(--slow);
+}
+.sos-btn:active { transform: scale(0.98); }
+.sos-title { font-size: 24px; font-weight: 700; }
+.sos-sub { font-size: 15px; opacity: 0.92; }
+
+.cards { display: grid; gap: 10px; }
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+}
+.card-title { font-weight: 600; }
+.card-sub { color: var(--muted); font-size: 15px; }
+
+/* ===== 도움받을 곳 (모든 화면 아래) ===== */
+.help-bar {
+  width: 100%;
+  max-width: 480px;
+  padding: 8px 20px calc(env(safe-area-inset-bottom) + 16px);
+  text-align: center;
+}
+.help-link {
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  color: var(--accent-deep);
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.sheet {
+  width: min(440px, calc(100% - 32px));
+  border: 0;
+  border-radius: 24px;
+  padding: 24px 22px;
+  background: var(--bg);
+  color: var(--text);
+}
+.sheet::backdrop { background: rgba(30, 45, 60, 0.35); }
+.sheet h2 { margin: 0 0 12px; font-size: 20px; }
+.sheet form { text-align: center; margin-top: 8px; }
+
+.help-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.help-list a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.help-list strong { font-size: 19px; color: var(--accent-deep); min-width: 92px; }
+.help-list span { color: var(--muted); font-size: 14px; }
+
+.note { margin: 0 0 10px; font-size: 15px; }
+.muted { color: var(--muted); }
+
+/* ===== 잠깐 뜨는 안내 ===== */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 72px);
+  transform: translateX(-50%);
+  max-width: calc(100% - 40px);
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--accent-deep);
+  color: #fff;
+  font-size: 15px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--slow);
+}
+.toast.show { opacity: 1; }
+
+/* 움직임을 줄이도록 설정한 사람에게는 애니메이션을 거의 끄기 */
+@media (prefers-reduced-motion: reduce) {
+  .screen, .suggestion { animation: none; }
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eef4f8">
+  <meta name="description" content="불안이 올라올 때 몸을 가라앉히고, 생각을 옮기고, 작게 시작하도록 돕는 앱">
+  <title>숨</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ===== 홈 화면 ===== -->
+  <main id="screen-home" class="screen" data-screen="home">
+    <header class="home-header">
+      <p class="app-name">숨</p>
+      <h1 class="greeting">오늘 마음은 어때요?</h1>
+    </header>
+
+    <!-- 오늘 상태 한 번 탭 -->
+    <section class="mood" aria-label="오늘 상태">
+      <div class="mood-buttons" role="group">
+        <button class="mood-btn" data-mood="ok">괜찮아요</button>
+        <button class="mood-btn" data-mood="tense">조금 긴장돼요</button>
+        <button class="mood-btn" data-mood="hard">많이 힘들어요</button>
+      </div>
+      <!-- 상태를 고르면 여기에 안내가 나타나요 -->
+      <div id="mood-suggestion" class="suggestion" hidden aria-live="polite"></div>
+    </section>
+
+    <!-- 큰 SOS 버튼: 탭 한 번이면 바로 시작 -->
+    <a href="#/sos" class="sos-btn">
+      <span class="sos-title">지금 힘들어요</span>
+      <span class="sos-sub">누르면 바로 함께 숨 쉬어요</span>
+    </a>
+
+    <section class="cards" aria-label="도구">
+      <a href="#/breathe" class="card">
+        <span class="card-title">숨 고르기</span>
+        <span class="card-sub">1분, 3분 천천히 숨 쉬기</span>
+      </a>
+      <button class="card" data-soon>
+        <span class="card-title">생각이 꼬리를 물 때</span>
+        <span class="card-sub">생각을 적고, 다른 쪽에서 바라보기</span>
+      </button>
+      <button class="card" data-soon>
+        <span class="card-title">시작이 안 될 때</span>
+        <span class="card-sub">2분짜리 첫걸음 하나만</span>
+      </button>
+    </section>
+  </main>
+
+  <!-- ===== 모든 화면 아래: 도움받을 곳 ===== -->
+  <footer class="help-bar">
+    <button id="open-help" class="help-link">도움이 필요할 때</button>
+  </footer>
+
+  <!-- 도움받을 곳 안내 창 -->
+  <dialog id="help-sheet" class="sheet" aria-labelledby="help-title">
+    <h2 id="help-title">도움받을 수 있는 곳</h2>
+    <ul class="help-list">
+      <li><a href="tel:109"><strong>109</strong><span>자살예방상담전화 · 24시간</span></a></li>
+      <li><a href="tel:15770199"><strong>1577-0199</strong><span>정신건강위기상담전화 · 24시간</span></a></li>
+      <li><a href="tel:119"><strong>119</strong><span>응급 상황일 때</span></a></li>
+    </ul>
+    <p class="note">처음 겪는 가슴 통증이나 평소와 다른 증상이 있다면, 병원이나 119에 먼저 연락해 주세요.</p>
+    <p class="note muted">이 앱은 진단이나 치료를 대신하지 않아요. 혼자 버티기 어려울 땐 전문가와 이야기해 보세요.</p>
+    <form method="dialog"><button class="btn-soft">닫기</button></form>
+  </dialog>
+
+  <!-- 잠깐 떴다 사라지는 안내 문구 -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
