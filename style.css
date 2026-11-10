@@ -35,6 +35,9 @@
 
 * { box-sizing: border-box; }
 
+/* hidden(숨김)으로 표시한 것은 어떤 스타일이 있어도 항상 숨기기 */
+[hidden] { display: none !important; }
+
 html, body { margin: 0; }
 
 body {
@@ -232,4 +235,107 @@ a { text-decoration: none; }
 /* 움직임을 줄이도록 설정한 사람에게는 애니메이션을 거의 끄기 */
 @media (prefers-reduced-motion: reduce) {
   .screen, .suggestion { animation: none; }
+}
+
+/* =========================================================
+   숨 고르기 · SOS 화면
+   ========================================================= */
+.breathe-screen { display: flex; flex-direction: column; }
+.breathe-screen[hidden] { display: none; }
+
+.back { align-self: flex-start; color: var(--accent-deep); font-size: 15px; padding: 4px 0; }
+.screen-title { margin: 8px 0 0; font-size: 24px; text-align: center; font-weight: 600; }
+.center { text-align: center; }
+
+.length-choice { display: flex; justify-content: center; gap: 8px; margin: 12px 0 0; }
+.length-btn {
+  min-width: 80px;
+  padding: 8px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  transition: background var(--slow), border-color var(--slow);
+}
+.length-btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
+.length-btn:disabled { cursor: default; opacity: 0.6; }
+
+/* 커졌다 작아지는 원 */
+.breath-stage {
+  position: relative;
+  width: min(280px, 78vw);
+  aspect-ratio: 1;
+  margin: 28px auto 12px;
+  display: grid;
+  place-items: center;
+}
+.breath-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed var(--line);
+}
+.breath-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #cfe3f0 0%, var(--accent) 70%, var(--accent-deep) 100%);
+  opacity: 0.85;
+  transform: scale(0.5);
+  /* 길이는 app.js가 들숨(4초)·날숨(6초)에 맞춰 바꿔 줘요 */
+  transition-property: transform;
+  transition-timing-function: ease-in-out;
+}
+.breath-label {
+  position: relative;      /* 원 위에 글자가 보이도록 */
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  text-shadow: 0 1px 6px rgba(40, 70, 95, 0.4);
+  text-align: center;
+  padding: 0 24px;
+}
+
+.remaining { text-align: center; margin: 0 0 8px; font-size: 15px; }
+.done-message { text-align: center; margin: 0 0 16px; animation: fade-in var(--slow) ease; }
+.btn-big { padding: 14px 32px; font-size: 17px; }
+
+/* SOS */
+.sos-phrase {
+  min-height: 3.4em;
+  margin: 8px 0 20px;
+  text-align: center;
+  font-size: 21px;
+  font-weight: 600;
+  transition: opacity 1.2s ease;
+}
+.sos-phrase.fading { opacity: 0; }
+
+.sos-help {
+  margin-top: auto;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.sos-help-title { margin: 0 0 10px; font-size: 15px; color: var(--muted); text-align: center; }
+.sos-help-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.sos-help-links a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+.sos-help-links strong { color: var(--accent-deep); font-size: 16px; }
+.sos-help-links span { font-size: 13px; color: var(--muted); }
+#screen-sos { padding-top: calc(env(safe-area-inset-top) + 40px); }
+#screen-sos .note { text-align: center; margin: 0; font-size: 14px; }
+
+/* SOS 화면에는 도움받을 곳이 이미 보이니 아래 링크는 숨기기 */
+body.on-sos .help-bar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .done-message { animation: none; }
 }

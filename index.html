@@ -49,6 +49,59 @@
     </section>
   </main>
 
+  <!-- ===== 숨 고르기 화면 ===== -->
+  <main id="screen-breathe" class="screen breathe-screen" data-screen="breathe" hidden>
+    <a href="#/" class="back">← 홈으로</a>
+    <h1 class="screen-title">숨 고르기</h1>
+    <p class="muted center">내쉬는 숨을 조금 더 길게 해요.</p>
+
+    <div class="length-choice" role="group" aria-label="시간 고르기">
+      <button class="length-btn" data-min="1">1분</button>
+      <button class="length-btn" data-min="3">3분</button>
+    </div>
+
+    <div class="breath-stage">
+      <div class="breath-ring"></div>
+      <div class="breath-circle" id="breathe-circle"></div>
+      <p class="breath-label" id="breathe-label" aria-live="polite">준비되면 시작해요</p>
+    </div>
+
+    <p class="remaining muted" id="breathe-remaining">&nbsp;</p>
+    <p class="done-message" id="breathe-done" hidden>
+      잘했어요. 잠깐 멈춰서 숨을 고른 것만으로 충분해요.
+    </p>
+
+    <div class="center">
+      <button class="btn-main btn-big" id="breathe-start">시작하기</button>
+      <button class="btn-soft btn-big" id="breathe-stop" hidden>그만할래요</button>
+    </div>
+  </main>
+
+  <!-- ===== SOS 화면: 고를 것 없이 곧장 시작 ===== -->
+  <main id="screen-sos" class="screen breathe-screen" data-screen="sos" hidden>
+    <div class="breath-stage">
+      <div class="breath-ring"></div>
+      <div class="breath-circle" id="sos-circle"></div>
+      <p class="breath-label" id="sos-label" aria-live="polite">들이쉬어요</p>
+    </div>
+
+    <p class="sos-phrase" id="sos-phrase">지금 위험한 게 아니에요</p>
+
+    <div class="center">
+      <a href="#/" class="btn-soft btn-big" id="sos-better">조금 나아졌어요</a>
+    </div>
+
+    <section class="sos-help" aria-label="도움받을 곳">
+      <p class="sos-help-title">혼자 견디기 어렵다면</p>
+      <div class="sos-help-links">
+        <a href="tel:109"><strong>109</strong><span>자살예방</span></a>
+        <a href="tel:15770199"><strong>1577-0199</strong><span>정신건강위기</span></a>
+        <a href="tel:119"><strong>119</strong><span>응급</span></a>
+      </div>
+      <p class="note muted">처음 겪는 가슴 통증이나 평소와 다른 증상이면 병원이나 119가 먼저예요.</p>
+    </section>
+  </main>
+
   <!-- ===== 모든 화면 아래: 도움받을 곳 ===== -->
   <footer class="help-bar">
     <button id="open-help" class="help-link">도움이 필요할 때</button>
