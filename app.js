@@ -321,3 +321,10 @@ document.addEventListener('visibilitychange', () => {
 
 /* 모든 준비가 끝났으니 지금 주소에 맞는 화면을 보여 줘요 */
 showScreen();
+
+/* ---------- 인터넷 없이도 열리게 (서비스 워커 등록) ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
