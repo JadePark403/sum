@@ -817,6 +817,7 @@ let tomorrowItems = null;   // 이번에 꺼내 보여 주는 중인 것 (기기
 
 function renderHomeExtras() {
   document.getElementById('night-banner').hidden = !isNightTime();
+  document.getElementById('night-link-row').hidden = isNightTime();   // 밤에는 위 안내와 겹치지 않게
 
   if (!tomorrowItems && !isNightTime()) {
     try {

@@ -682,3 +682,24 @@ html.is-night .splash-sub { color: #55636e; }
   .let-go-card { transition: opacity 0.6s ease; }
   .let-go-card.drift-away, .let-go-card.set-aside { transform: none; filter: none; }
 }
+
+/* 홈 아래쪽의 작은 밤 모드 링크 */
+.night-link-row { margin: 20px 0 0; text-align: center; }
+.night-link {
+  display: inline-block;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* 밤 모드 마지막 화면의 아주 작은 안내 */
+.night-care-note {
+  margin: 48px auto 0;
+  max-width: 300px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  opacity: 0.8;
+}
