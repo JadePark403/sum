@@ -14,6 +14,21 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- ===== 시작 화면: 앱 이름과 숨 한 번 =====
+       CSS만으로 움직이고 스스로 사라져요. 화면을 누르면 바로 넘어가요. -->
+  <div id="splash" class="splash" aria-hidden="true">
+    <div class="splash-stage">
+      <div class="splash-ring"></div>
+      <div class="splash-circle"></div>
+    </div>
+    <p class="splash-name">숨</p>
+    <p class="splash-sub">숨 한 번, 천천히</p>
+  </div>
+  <script>
+    // SOS로 바로 열었을 때는 기다리지 않게 시작 화면을 건너뛰어요
+    if (location.hash.indexOf('#/sos') === 0) document.getElementById('splash').remove();
+  </script>
+
   <!-- ===== 홈 화면 ===== -->
   <main id="screen-home" class="screen" data-screen="home">
     <header class="home-header">

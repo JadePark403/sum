@@ -498,3 +498,75 @@ body.on-sos .help-bar { display: none; }
   .start-step { animation: none; }
   .timer-bar { transition: none; }
 }
+
+/* =========================================================
+   시작 화면 (앱을 열 때 한 번)
+   원이 숨을 들이쉬듯 천천히 커지고, "숨"이 떠올랐다가
+   화면 전체가 부드럽게 사라져요. 모두 합쳐 약 2초.
+   ========================================================= */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
+  animation: splash-out 700ms ease 1500ms forwards;
+}
+.splash.leaving { animation: splash-out 400ms ease forwards; }  /* 누르면 더 빨리 */
+
+.splash-stage {
+  position: relative;
+  width: min(180px, 48vw);
+  aspect-ratio: 1;
+}
+.splash-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed var(--line);
+  opacity: 0;
+  animation: fade-in 900ms ease 200ms forwards;
+}
+.splash-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #cfe3f0 0%, var(--accent) 70%, var(--accent-deep) 100%);
+  opacity: 0.85;
+  transform: scale(0.45);
+  animation: splash-breath 1500ms ease-in-out forwards;   /* 들숨 한 번 */
+}
+.splash-name {
+  margin: 22px 0 0;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--accent-deep);
+  opacity: 0;
+  animation: fade-in 800ms ease 400ms forwards;
+}
+.splash-sub {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+  opacity: 0;
+  animation: fade-in 800ms ease 650ms forwards;
+}
+
+@keyframes splash-breath {
+  from { transform: scale(0.45); }
+  to   { transform: scale(1); }
+}
+@keyframes splash-out {
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* 움직임을 줄이도록 설정한 사람에게는 원을 움직이지 않고 잠깐 보여 주기만 해요 */
+@media (prefers-reduced-motion: reduce) {
+  .splash-circle { animation: none; transform: scale(0.8); }
+  .splash-ring, .splash-name, .splash-sub { animation: none; opacity: 1; }
+  .splash { animation-delay: 900ms; }
+}

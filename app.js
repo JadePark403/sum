@@ -679,3 +679,16 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
+
+/* ---------- 시작 화면 ----------
+   CSS가 알아서 사라지게 하고, 여기서는 다 사라진 뒤 치워 주기만 해요.
+   화면을 누르면 기다리지 않고 바로 넘어가요. */
+const splash = document.getElementById('splash');
+if (splash) {
+  splash.addEventListener('click', () => splash.classList.add('leaving'));
+  splash.addEventListener('animationend', (e) => {
+    if (e.target === splash) splash.remove();
+  });
+  // 혹시 움직임이 멈춰 있어도(절전 모드 등) 시작 화면이 앱을 가리지 않게, 3초 뒤엔 무조건 치워요
+  setTimeout(() => splash.remove(), 3000);
+}
