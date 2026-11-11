@@ -570,3 +570,115 @@ body.on-sos .help-bar { display: none; }
   .splash-ring, .splash-name, .splash-sub { animation: none; opacity: 1; }
   .splash { animation-delay: 900ms; }
 }
+
+/* =========================================================
+   잠 못 드는 밤 모드
+   밤 화면에서는 색 변수를 아주 어둡고 흐린 값으로 바꿔요.
+   body에 바꿔 두니 도움받을 곳 안내 창과 아래 링크까지 함께 어두워져요.
+   ========================================================= */
+body.on-night {
+  --bg: #06090d;
+  --bg-soft: #080c11;
+  --surface: rgba(255, 255, 255, 0.035);
+  --text: #9aa9b5;
+  --muted: #66747f;
+  --accent: #3f5a6d;
+  --accent-deep: #6d889c;
+  --accent-soft: #121b23;
+  --line: rgba(109, 136, 156, 0.14);
+  color-scheme: dark;
+}
+
+/* 홈 위의 조용한 안내 */
+.night-banner {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  animation: fade-in 1.6s ease;
+}
+.night-banner-title { font-weight: 600; color: var(--accent-deep); }
+.night-banner-title::before { content: "☾ "; opacity: 0.8; }
+.night-banner-sub { font-size: 14px; color: var(--muted); }
+
+/* 다음 날 낮에 한 번 보이는 카드 */
+.tomorrow-card {
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  animation: fade-in var(--slow) ease;
+}
+.tomorrow-title { margin: 0 0 8px; font-weight: 600; }
+.tomorrow-card .quote-list { margin: 0 0 8px; }
+.tomorrow-card .muted { margin: 0 0 12px; }
+.tomorrow-card .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 밤 화면 */
+.night-screen { display: flex; flex-direction: column; }
+.night-screen[hidden] { display: none; }
+.night-step { animation: fade-in 1.2s ease; }
+.night-step > .muted { margin: 0 0 18px; font-size: 15px; }
+.night-title { margin: 20px 0 6px; font-size: 20px; font-weight: 500; line-height: 1.5; }
+.night-screen .btn-main { background: #2b3d4b; color: #b3c2cd; }
+.night-screen .btn-soft { background: #121b23; color: #8fa3b2; }
+
+/* ② 생각 카드: 흘려보내면 위로 떠오르며 사라지고, 미루면 아래로 내려가며 사라져요 */
+.let-go-area { min-height: 150px; display: grid; place-items: center; margin: 8px 0 12px; }
+.let-go-card {
+  width: 100%;
+  margin: 0;
+  padding: 22px 20px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: center;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+  transition: opacity 1.4s ease, transform 1.4s ease, filter 1.4s ease;
+}
+.let-go-card.drift-away { opacity: 0; transform: translateY(-48px) scale(0.96); filter: blur(4px); }
+.let-go-card.set-aside  { opacity: 0; transform: translateY(28px) scale(0.94); }
+.let-go-card.arrive     { opacity: 0; }
+
+/* ③ 밤 호흡: 원도 글자도 흐리게 */
+.night-screen .breath-ring { border-color: rgba(109, 136, 156, 0.12); }
+.night-screen .breath-circle {
+  background: radial-gradient(circle at 35% 30%, #34495a 0%, #22323f 70%, #18242e 100%);
+  opacity: 0.9;
+}
+.night-screen .breath-label { color: #8a9cab; text-shadow: none; font-weight: 500; font-size: 18px; }
+#night-stage { transition: opacity 3s ease; }
+#night-stop { margin-top: 8px; }
+
+/* 화면 전체를 천천히 덮는 어둠 (길이는 app.js가 정해요) */
+.night-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;           /* 덮여 있어도 버튼은 눌려요 */
+  transition-property: opacity;
+  transition-timing-function: linear;
+}
+
+.night-end { padding-top: 40px; }
+.night-end .night-title { font-size: 22px; }
+
+/* 밤에 여는 시작 화면도 어둡게 */
+html.is-night .splash { background: #06090d; }
+html.is-night .splash-circle { background: radial-gradient(circle at 35% 30%, #34495a 0%, #22323f 70%, #18242e 100%); }
+html.is-night .splash-ring { border-color: rgba(109, 136, 156, 0.14); }
+html.is-night .splash-name { color: #6d889c; }
+html.is-night .splash-sub { color: #55636e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .night-banner, .tomorrow-card, .night-step { animation: none; }
+  .let-go-card { transition: opacity 0.6s ease; }
+  .let-go-card.drift-away, .let-go-card.set-aside { transform: none; filter: none; }
+}

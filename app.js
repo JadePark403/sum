@@ -127,7 +127,7 @@ const CYCLE_MS = INHALE_MS + EXHALE_MS;   // 한 번 숨쉬는 데 10초
 
 /* 원 하나와 글자 하나를 받아서 "숨쉬기 도우미"를 만들어 주는 함수예요.
    숨 고르기 화면과 SOS 화면이 같은 도우미를 나눠 써요. */
-function createBreather(circle, label) {
+function createBreather(circle, label, timing = { inhale: INHALE_MS, exhale: EXHALE_MS }) {
   let timer = null;
   let running = false;
 
@@ -158,17 +158,17 @@ function createBreather(circle, label) {
         return;
       }
       label.textContent = '들이쉬어요';
-      setCircle(1, INHALE_MS);
-      timer = setTimeout(exhale, INHALE_MS);
+      setCircle(1, timing.inhale);
+      timer = setTimeout(exhale, timing.inhale);
     }
 
     function exhale() {
       if (!running) return;
       label.textContent = '천천히 내쉬어요';
-      setCircle(0.5, EXHALE_MS);
+      setCircle(0.5, timing.exhale);
       count += 1;
       if (onCycle) onCycle(count);
-      timer = setTimeout(inhale, EXHALE_MS);
+      timer = setTimeout(inhale, timing.exhale);
     }
 
     // 원이 작은 상태에서 시작하도록 한 박자 쉬고 출발
@@ -636,9 +636,229 @@ document.getElementById('start-next').addEventListener('click', () => {
   firstInput.focus();
 });
 
+/* =========================================================
+   잠 못 드는 밤 모드
+   ① 생각 적기 → ② 하나씩 흘려보내기 / 내일로 미루기
+   → ③ 들숨 4초 · 날숨 7초, 점점 어두워지며 끝 → ④ "오늘은 여기까지"
+   적은 생각은 화면을 나가면 사라져요(어디에도 저장하지 않아요).
+   "내일로 미루기"한 것만 기기에 잠깐 두었다가, 다음 날 낮에 한 번 보여 주고 지워요.
+   수면 점수나 기록은 없어요.
+   ========================================================= */
+const NIGHT_TIMING = { inhale: 4000, exhale: 7000 };
+const NIGHT_CYCLES = 15;                                   // 11초 × 15번 ≈ 2분 45초
+const NIGHT_MS = NIGHT_CYCLES * (NIGHT_TIMING.inhale + NIGHT_TIMING.exhale);
+const TOMORROW_KEY = 'soom.tomorrow';
+
+function isNightTime(d = new Date()) {
+  const h = d.getHours();
+  return h >= 23 || h < 5;
+}
+
+// "다음 날 낮"이 시작되는 때: 자정 전이면 내일 아침 7시, 자정 넘어서면 오늘 아침 7시
+function nextMorning(d = new Date()) {
+  const m = new Date(d);
+  if (d.getHours() >= 5) m.setDate(m.getDate() + 1);
+  m.setHours(7, 0, 0, 0);
+  return m.getTime();
+}
+
+function saveForTomorrow(text) {
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(TOMORROW_KEY)); } catch (e) { /* 무시 */ }
+  const items = data && Array.isArray(data.items) ? data.items : [];
+  items.push(text);
+  try {
+    localStorage.setItem(TOMORROW_KEY, JSON.stringify({ showFrom: nextMorning(), items }));
+  } catch (e) { /* 저장이 안 되면 그냥 넘어가요 */ }
+}
+
+const nightBreath = createBreather(
+  document.getElementById('night-circle'),
+  document.getElementById('night-label'),
+  NIGHT_TIMING,
+);
+const nightInput = document.getElementById('night-input');
+const nightList = document.getElementById('night-list');
+const nightToStep2 = document.getElementById('night-to-2');
+const nightCurrent = document.getElementById('night-current');
+const nightChoices = document.getElementById('night-choices');
+const nightAllDone = document.getElementById('night-all-done');
+const nightDim = document.getElementById('night-dim');
+const nightStage = document.getElementById('night-stage');
+
+let night = { step: 1, lines: [], index: 0, postponed: 0 };
+let nightEndTimer = null;
+
+function setDim(opacity, ms) {
+  nightDim.style.transitionDuration = ms + 'ms';
+  nightDim.style.opacity = String(opacity);
+}
+
+function showNightStep(step) {
+  night.step = step;
+  document.querySelectorAll('.night-step').forEach((sec) => {
+    sec.hidden = Number(sec.dataset.nstep) !== step;
+  });
+  window.scrollTo(0, 0);
+}
+
+function renderNightList() {
+  nightList.innerHTML = '';
+  night.lines.forEach((text, i) => {
+    const li = document.createElement('li');
+    const span = document.createElement('span');
+    span.textContent = text;
+    const del = document.createElement('button');
+    del.className = 'remove';
+    del.textContent = '×';
+    del.setAttribute('aria-label', `"${text}" 지우기`);
+    del.addEventListener('click', () => {
+      night.lines.splice(i, 1);
+      renderNightList();
+    });
+    li.append(span, del);
+    nightList.appendChild(li);
+  });
+  nightToStep2.disabled = night.lines.length === 0;
+}
+
+function resetNight() {
+  nightBreath.stop();
+  clearTimeout(nightEndTimer);
+  night = { step: 1, lines: [], index: 0, postponed: 0 };
+  nightInput.value = '';
+  renderNightList();
+  setDim(0, 0);
+  nightStage.style.opacity = '';
+  showNightStep(1);
+}
+
+// ① 적기
+document.getElementById('night-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = nightInput.value.trim();
+  if (!text) return;
+  night.lines.push(text);
+  nightInput.value = '';
+  renderNightList();
+  nightInput.focus();
+});
+nightToStep2.addEventListener('click', () => {
+  night.index = 0;
+  nightAllDone.hidden = true;
+  nightChoices.hidden = false;
+  showNightStep(2);
+  showCurrentThought();
+});
+document.getElementById('night-skip').addEventListener('click', startNightBreath);
+
+// ② 한 번에 하나씩
+function showCurrentThought() {
+  if (night.index >= night.lines.length) {
+    nightCurrent.textContent = '';
+    nightCurrent.hidden = true;
+    nightChoices.hidden = true;
+    nightAllDone.hidden = false;
+    return;
+  }
+  nightCurrent.hidden = false;
+  nightCurrent.style.transition = 'none';       // 제자리로 "순간 이동"한 뒤
+  nightCurrent.className = 'let-go-card arrive';
+  nightCurrent.textContent = night.lines[night.index];
+  void nightCurrent.offsetWidth;                // 안 보이는 상태를 먼저 그리고
+  nightCurrent.style.transition = '';
+  nightCurrent.className = 'let-go-card';       // 그 자리에서 천천히 나타나게
+}
+
+function letGo(kind) {
+  if (nightChoices.dataset.busy) return;        // 카드가 사라지는 동안엔 한 번만
+  nightChoices.dataset.busy = '1';
+  if (kind === 'later') {
+    saveForTomorrow(night.lines[night.index]);
+    night.postponed += 1;
+  }
+  nightCurrent.classList.add(kind === 'later' ? 'set-aside' : 'drift-away');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(() => {
+    delete nightChoices.dataset.busy;
+    night.index += 1;
+    showCurrentThought();
+  }, reduce ? 600 : 1400);
+}
+document.getElementById('night-release').addEventListener('click', () => letGo('release'));
+document.getElementById('night-later').addEventListener('click', () => letGo('later'));
+document.getElementById('night-to-3').addEventListener('click', startNightBreath);
+
+// ③ 느린 호흡 — 하는 동안 화면이 아주 천천히 어두워져요
+function startNightBreath() {
+  showNightStep(3);
+  nightStage.style.opacity = '';
+  document.getElementById('night-label').textContent = '눈을 반쯤 감아도 돼요';
+  keepScreenOn();
+  requestAnimationFrame(() => setDim(0.75, NIGHT_MS));
+  nightBreath.start(NIGHT_CYCLES, { onDone: endNight });
+}
+
+function endNight() {
+  nightBreath.stop();
+  releaseScreen();                              // 이제 폰 화면이 스스로 꺼져도 돼요
+  nightStage.style.opacity = '0';               // 원이 어둠 속으로 사라지고
+  clearTimeout(nightEndTimer);
+  nightEndTimer = setTimeout(() => {
+    document.getElementById('night-later-note').hidden = night.postponed === 0;
+    showNightStep(4);
+    setDim(0.45, 2000);                         // 마지막 문장은 겨우 읽힐 만큼만
+  }, 3000);
+}
+document.getElementById('night-stop').addEventListener('click', endNight);
+
+/* ---------- 홈: 밤 안내 · 다음 날 낮의 카드 ---------- */
+let tomorrowItems = null;   // 이번에 꺼내 보여 주는 중인 것 (기기에서는 이미 지웠어요)
+
+function renderHomeExtras() {
+  document.getElementById('night-banner').hidden = !isNightTime();
+
+  if (!tomorrowItems && !isNightTime()) {
+    try {
+      const data = JSON.parse(localStorage.getItem(TOMORROW_KEY));
+      if (data && Date.now() >= data.showFrom && data.items && data.items.length) {
+        tomorrowItems = data.items;
+        localStorage.removeItem(TOMORROW_KEY);  // "한 번만" 보여 주기 위해 바로 지워요
+      }
+    } catch (e) { /* 무시 */ }
+  }
+
+  const card = document.getElementById('tomorrow-card');
+  const list = document.getElementById('tomorrow-list');
+  card.hidden = !tomorrowItems;
+  list.innerHTML = '';
+  (tomorrowItems || []).forEach((text) => {
+    const li = document.createElement('li');
+    li.textContent = text;
+    list.appendChild(li);
+  });
+}
+document.getElementById('tomorrow-ok').addEventListener('click', () => {
+  tomorrowItems = null;                         // 기기에서도 이미 지웠으니 다시 나오지 않아요
+  document.getElementById('tomorrow-card').hidden = true;
+});
+
+// 앱을 켜 둔 채 시간이 지나도(예: 밤 11시가 되면) 다시 보여 줄 때 맞춰 줘요
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && !document.getElementById('screen-home').hidden) renderHomeExtras();
+});
+
 /* ---------- 화면이 바뀔 때마다 ---------- */
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+
 function onScreenChange(name) {
   document.body.classList.toggle('on-sos', name === 'sos');
+  document.body.classList.toggle('on-night', name === 'night');
+  themeMeta.content = name === 'night' ? '#06090d' : '#eef4f8';
+
+  if (name === 'night') resetNight();          // 밤 화면은 늘 처음부터, 빈 종이로
+  else { nightBreath.stop(); clearTimeout(nightEndTimer); setDim(0, 0); }
+  if (name === 'home') renderHomeExtras();
 
   // 다른 화면으로 가면 숨쉬기는 모두 멈춰요
   if (name !== 'sos') sos.stop();

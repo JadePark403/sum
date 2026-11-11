@@ -25,12 +25,34 @@
     <p class="splash-sub">숨 한 번, 천천히</p>
   </div>
   <script>
-    // SOS로 바로 열었을 때는 기다리지 않게 시작 화면을 건너뛰어요
-    if (location.hash.indexOf('#/sos') === 0) document.getElementById('splash').remove();
+    // 밤(23시~5시)에는 시작 화면도 어둡게 보여 줘요 — 눈부시지 않게
+    var hour = new Date().getHours();
+    if (hour >= 23 || hour < 5) document.documentElement.classList.add('is-night');
+    // SOS나 밤 모드로 바로 열었을 때는 기다리지 않게 시작 화면을 건너뛰어요
+    if (location.hash.indexOf('#/sos') === 0 || location.hash.indexOf('#/night') === 0) {
+      document.getElementById('splash').remove();
+    }
   </script>
 
   <!-- ===== 홈 화면 ===== -->
   <main id="screen-home" class="screen" data-screen="home">
+    <!-- 밤 11시~새벽 5시에만 조용히 나타나요 -->
+    <a href="#/night" id="night-banner" class="night-banner" hidden>
+      <span class="night-banner-title">잠이 안 오나요?</span>
+      <span class="night-banner-sub">어두운 화면에서 천천히 내려놓아요</span>
+    </a>
+
+    <!-- 어젯밤 "내일로 미루기" 한 생각을 다음 날 낮에 한 번만 보여 줘요 -->
+    <section id="tomorrow-card" class="tomorrow-card" hidden aria-label="어젯밤 미뤄 둔 생각">
+      <p class="tomorrow-title">어젯밤, 내일로 미뤄 둔 생각이에요</p>
+      <ul id="tomorrow-list" class="quote-list"></ul>
+      <p class="muted small">지금 다시 보니 어때요? 그냥 지나가도 괜찮아요.</p>
+      <div class="actions">
+        <button class="btn-soft" id="tomorrow-ok">확인했어요</button>
+        <a href="#/start" class="btn-soft">첫걸음 만들기</a>
+      </div>
+    </section>
+
     <header class="home-header">
       <p class="app-name">숨</p>
       <h1 class="greeting">오늘 마음은 어때요?</h1>
@@ -246,6 +268,66 @@
       </div>
       <button class="text-btn" id="start-next">다음 첫걸음 정하기</button>
     </section>
+  </main>
+
+  <!-- ===== 잠 못 드는 밤 모드 (아주 어두운 화면) ===== -->
+  <main id="screen-night" class="screen night-screen" data-screen="night" hidden>
+    <a href="#/" class="back">← 나가기</a>
+
+    <!-- ① 생각 한 줄씩 적기 -->
+    <section class="night-step" data-nstep="1">
+      <h1 class="night-title">머릿속에 떠다니는 생각을<br>한 줄씩 적어요</h1>
+      <p class="muted">적고 나면 하나씩 내려놓을 거예요.</p>
+      <form id="night-form" class="line-form">
+        <input id="night-input" type="text" maxlength="120" autocomplete="off"
+               placeholder="예: 내일 늦잠 자면 어떡하지" aria-label="생각 한 줄">
+        <button class="btn-main" type="submit">적기</button>
+      </form>
+      <ul id="night-list" class="thought-list"></ul>
+      <div class="step-actions">
+        <button class="text-btn" id="night-skip">적을 게 없어요, 바로 숨 쉴래요</button>
+        <button class="btn-main btn-big" id="night-to-2" disabled>다 적었어요</button>
+      </div>
+    </section>
+
+    <!-- ② 하나씩 흘려보내기 / 내일로 미루기 -->
+    <section class="night-step" data-nstep="2" hidden>
+      <h1 class="night-title">하나씩 내려놓아요</h1>
+      <p class="muted">지금 붙잡고 있지 않아도 돼요. 흘려보내거나, 내일의 나에게 맡겨요.</p>
+      <div class="let-go-area">
+        <p id="night-current" class="let-go-card"></p>
+      </div>
+      <div class="step-actions center-actions" id="night-choices">
+        <button class="btn-soft btn-big" id="night-release">흘려보내기</button>
+        <button class="btn-soft btn-big" id="night-later">내일로 미루기</button>
+      </div>
+      <div class="center" id="night-all-done" hidden>
+        <p>다 내려놓았어요. 이제 천천히 숨 쉬어요.</p>
+        <button class="btn-main btn-big" id="night-to-3">숨 쉬기</button>
+      </div>
+    </section>
+
+    <!-- ③ 들숨 4초 · 날숨 7초, 점점 어두워지며 끝나기 -->
+    <section class="night-step center" data-nstep="3" hidden>
+      <p class="muted small">들이쉬고 4초, 내쉬고 7초</p>
+      <div class="breath-stage" id="night-stage">
+        <div class="breath-ring"></div>
+        <div class="breath-circle" id="night-circle"></div>
+        <p class="breath-label" id="night-label" aria-live="polite">눈을 반쯤 감아도 돼요</p>
+      </div>
+      <button class="text-btn" id="night-stop">그만할래요</button>
+    </section>
+
+    <!-- ④ 끝 -->
+    <section class="night-step center night-end" data-nstep="4" hidden>
+      <h1 class="night-title">오늘은 여기까지 해도 돼요</h1>
+      <p class="muted">폰은 내려놓고, 눈을 감아도 괜찮아요.</p>
+      <p class="muted small" id="night-later-note" hidden>내일로 미룬 생각은 내일 낮에 한 번 보여 드릴게요.</p>
+      <a href="#/" class="text-btn">처음으로</a>
+    </section>
+
+    <!-- 호흡하는 동안 화면 전체를 천천히 어둡게 덮는 막 (누르는 건 그대로 통과해요) -->
+    <div class="night-dim" id="night-dim" aria-hidden="true"></div>
   </main>
 
   <!-- ===== 모든 화면 아래: 도움받을 곳 ===== -->
