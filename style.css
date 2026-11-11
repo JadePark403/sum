@@ -703,3 +703,31 @@ html.is-night .splash-sub { color: #55636e; }
   color: var(--muted);
   opacity: 0.8;
 }
+
+/* =========================================================
+   오늘의 기준 낮추기
+   ========================================================= */
+.lower-step { animation: fade-in var(--slow) ease; }
+.lower-step > .muted { margin: 0 0 16px; font-size: 15px; }
+.hand-over {
+  margin: 28px 0 8px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--line);
+}
+.hand-over-title { margin: 0 0 2px; font-weight: 600; font-size: 15px; }
+.hand-over .muted { margin: 0 0 10px; }
+.hand-over .step-actions { margin-top: 10px; }
+.lower-step .first-step { margin-top: 4px; }
+.lower-end { padding-top: 32px; }
+
+/* 홈 아래쪽 작은 링크 두 개가 나란히 */
+.night-link-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; }
+.night-link[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lower-step { animation: none; }
+}
+#screen-lower .screen-title { margin-bottom: 20px; }
+/* 안내 문구가 화면 절반 너비에 갇혀 두 줄로 꺾이지 않게 */
+.toast { width: max-content; text-align: center; }

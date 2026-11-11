@@ -63,11 +63,15 @@ const moodSuggestions = {
     actions: [
       { label: '3분 숨 고르기', href: '#/breathe?min=3', main: true },
       { label: '생각이 꼬리를 물 때', href: '#/thought' },
+      { label: '오늘의 기준 낮추기', href: '#/lower' },
     ],
   },
   hard: {
     text: '많이 힘들었군요. 지금은 다른 건 미뤄 두고, 같이 숨만 쉬어요.',
-    actions: [{ label: '지금 같이 숨 쉬기', href: '#/sos', main: true }],
+    actions: [
+      { label: '지금 같이 숨 쉬기', href: '#/sos', main: true },
+      { label: '오늘의 기준 낮추기', href: '#/lower' },
+    ],
   },
 };
 
@@ -662,14 +666,27 @@ function nextMorning(d = new Date()) {
   return m.getTime();
 }
 
-function saveForTomorrow(text) {
-  let data = null;
-  try { data = JSON.parse(localStorage.getItem(TOMORROW_KEY)); } catch (e) { /* 무시 */ }
-  const items = data && Array.isArray(data.items) ? data.items : [];
-  items.push(text);
+/* "내일의 나에게" 맡긴 것들 (밤 모드의 "내일로 미루기" + 오늘의 기준 낮추기의 "맡겨 두기")
+   하나하나에 "언제부터 보여 줄지"를 따로 적어 둬요. 그래야 오늘 낮에 맡긴 게
+   어젯밤 것과 섞여 오늘 바로 나오지 않아요. */
+function loadTomorrow() {
   try {
-    localStorage.setItem(TOMORROW_KEY, JSON.stringify({ showFrom: nextMorning(), items }));
+    const data = JSON.parse(localStorage.getItem(TOMORROW_KEY));
+    if (!data || !Array.isArray(data.items)) return [];
+    // 예전 방식(글자만 저장)으로 남아 있던 것도 읽어요
+    return data.items.map((it) => (typeof it === 'string' ? { text: it, showFrom: data.showFrom } : it));
+  } catch (e) { return []; }
+}
+function storeTomorrow(items) {
+  try {
+    if (items.length) localStorage.setItem(TOMORROW_KEY, JSON.stringify({ items }));
+    else localStorage.removeItem(TOMORROW_KEY);
   } catch (e) { /* 저장이 안 되면 그냥 넘어가요 */ }
+}
+function saveForTomorrow(text) {
+  const items = loadTomorrow();
+  items.push({ text, showFrom: nextMorning() });
+  storeTomorrow(items);
 }
 
 const nightBreath = createBreather(
@@ -817,14 +834,15 @@ let tomorrowItems = null;   // 이번에 꺼내 보여 주는 중인 것 (기기
 
 function renderHomeExtras() {
   document.getElementById('night-banner').hidden = !isNightTime();
-  document.getElementById('night-link-row').hidden = isNightTime();   // 밤에는 위 안내와 겹치지 않게
+  document.getElementById('night-link').hidden = isNightTime();   // 밤에는 위 안내와 겹치지 않게   // 밤에는 위 안내와 겹치지 않게
 
   if (!tomorrowItems && !isNightTime()) {
     try {
-      const data = JSON.parse(localStorage.getItem(TOMORROW_KEY));
-      if (data && Date.now() >= data.showFrom && data.items && data.items.length) {
-        tomorrowItems = data.items;
-        localStorage.removeItem(TOMORROW_KEY);  // "한 번만" 보여 주기 위해 바로 지워요
+      const all = loadTomorrow();
+      const due = all.filter((it) => Date.now() >= it.showFrom);
+      if (due.length) {
+        tomorrowItems = due.map((it) => it.text);
+        storeTomorrow(all.filter((it) => Date.now() < it.showFrom));  // "한 번만" 보여 주려고 꺼낸 건 바로 지워요
       }
     } catch (e) { /* 무시 */ }
   }
@@ -849,6 +867,71 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && !document.getElementById('screen-home').hidden) renderHomeExtras();
 });
 
+/* =========================================================
+   오늘의 기준 낮추기
+   오늘 꼭 하나만 고르고, 나머지는 "내일의 나에게" 맡겨요.
+   맡긴 건 오늘 화면에 다시 보이지 않고, 다음 날 홈의 카드에 한 번 나와요.
+   개수나 완료율은 보여 주지 않아요.
+   ========================================================= */
+const lowerInput = document.getElementById('lower-input');
+const lowerPick = document.getElementById('lower-pick');
+const handoverInput = document.getElementById('handover-input');
+let lowerOne = '';
+
+function showLowerStep(step) {
+  document.querySelectorAll('.lower-step').forEach((sec) => {
+    sec.hidden = Number(sec.dataset.lstep) !== step;
+  });
+  window.scrollTo(0, 0);
+}
+
+function resetLower() {
+  lowerOne = '';
+  lowerInput.value = '';
+  handoverInput.value = '';
+  lowerPick.disabled = true;
+  showLowerStep(1);
+}
+
+lowerInput.addEventListener('input', () => {
+  lowerPick.disabled = !lowerInput.value.trim();
+});
+
+document.getElementById('lower-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  lowerOne = lowerInput.value.trim();
+  if (!lowerOne) return;
+  document.getElementById('lower-one').textContent = lowerOne;
+  showLowerStep(2);
+});
+
+// 떠오른 다른 일 → 내일의 나에게 (오늘 화면에선 바로 사라져요)
+document.getElementById('handover-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = handoverInput.value.trim();
+  if (!text) return;
+  saveForTomorrow(text);
+  handoverInput.value = '';
+  showToast('내일의 나에게 맡겨 뒀어요.');
+});
+
+// 고른 하나 → 첫걸음 만들기 (할 일 칸을 미리 채워서)
+document.getElementById('lower-to-start').addEventListener('click', () => {
+  start = { step: 1, task: lowerOne, first: '' };
+  saveStart();
+  location.hash = '#/start';
+});
+
+document.getElementById('lower-change').addEventListener('click', () => {
+  lowerInput.value = lowerOne;
+  lowerPick.disabled = !lowerOne;
+  showLowerStep(1);
+});
+
+document.querySelectorAll('[data-lower-rest]').forEach((btn) => {
+  btn.addEventListener('click', () => showLowerStep(3));
+});
+
 /* ---------- 화면이 바뀔 때마다 ---------- */
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 
@@ -860,6 +943,7 @@ function onScreenChange(name) {
   if (name === 'night') resetNight();          // 밤 화면은 늘 처음부터, 빈 종이로
   else { nightBreath.stop(); clearTimeout(nightEndTimer); setDim(0, 0); }
   if (name === 'home') renderHomeExtras();
+  if (name === 'lower') resetLower();          // 들어올 때마다 빈 칸에서 시작
 
   // 다른 화면으로 가면 숨쉬기는 모두 멈춰요
   if (name !== 'sos') sos.stop();

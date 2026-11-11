@@ -42,9 +42,9 @@
       <span class="night-banner-sub">어두운 화면에서 천천히 내려놓아요</span>
     </a>
 
-    <!-- 어젯밤 "내일로 미루기" 한 생각을 다음 날 낮에 한 번만 보여 줘요 -->
-    <section id="tomorrow-card" class="tomorrow-card" hidden aria-label="어젯밤 미뤄 둔 생각">
-      <p class="tomorrow-title">어젯밤, 내일로 미뤄 둔 생각이에요</p>
+    <!-- 밤 모드의 "내일로 미루기"와 기준 낮추기의 "맡겨 두기"를 다음 날 낮에 한 번만 보여 줘요 -->
+    <section id="tomorrow-card" class="tomorrow-card" hidden aria-label="어제의 내가 맡겨 둔 것">
+      <p class="tomorrow-title">어제의 내가 맡겨 둔 것</p>
       <ul id="tomorrow-list" class="quote-list"></ul>
       <p class="muted small">지금 다시 보니 어때요? 그냥 지나가도 괜찮아요.</p>
       <div class="actions">
@@ -90,9 +90,10 @@
       </a>
     </section>
 
-    <!-- 밤 시간이 아니어도 언제든 들어갈 수 있는 작은 링크 (밤에는 위의 안내가 대신해요) -->
-    <p class="night-link-row" id="night-link-row">
-      <a href="#/night" class="night-link">☾ 잠 못 드는 밤 모드</a>
+    <!-- 언제든 들어갈 수 있는 작은 링크들 (밤 모드 링크는 밤에는 위의 안내가 대신해요) -->
+    <p class="night-link-row">
+      <a href="#/lower" class="night-link">오늘의 기준 낮추기</a>
+      <a href="#/night" class="night-link" id="night-link">☾ 잠 못 드는 밤 모드</a>
     </p>
   </main>
 
@@ -272,6 +273,60 @@
         <button class="btn-main btn-big" id="start-more">조금 더 할래요</button>
       </div>
       <button class="text-btn" id="start-next">다음 첫걸음 정하기</button>
+    </section>
+  </main>
+
+  <!-- ===== 오늘의 기준 낮추기 ===== -->
+  <main id="screen-lower" class="screen" data-screen="lower" hidden>
+    <a href="#/" class="back">← 홈으로</a>
+    <h1 class="screen-title">오늘의 기준 낮추기</h1>
+
+    <!-- 하나만 고르기 -->
+    <section class="lower-step" data-lstep="1">
+      <h2 class="step-title">오늘 꼭 하나만 한다면?</h2>
+      <p class="muted">나머지는 오늘 안 해도 괜찮아요.</p>
+      <form id="lower-form">
+        <input id="lower-input" class="wide-input" type="text" maxlength="80" autocomplete="off"
+               placeholder="예: 은행에 전화하기" aria-label="오늘 꼭 하나">
+        <div class="step-actions">
+          <button type="submit" class="btn-main btn-big" id="lower-pick" disabled>이걸로 할게요</button>
+        </div>
+      </form>
+
+      <div class="hand-over">
+        <p class="hand-over-title">다른 할 일이 떠오르면</p>
+        <p class="muted small">여기 적어서 내일의 나에게 맡겨요. 오늘 화면에는 다시 나오지 않아요.</p>
+        <form id="handover-form">
+          <input id="handover-input" class="wide-input" type="text" maxlength="80" autocomplete="off"
+                 placeholder="예: 서랍 정리" aria-label="내일의 나에게 맡길 일">
+          <div class="step-actions">
+            <button type="submit" class="btn-soft">내일의 나에게 맡겨 두기</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="center"><button class="text-btn" data-lower-rest>오늘은 여기까지</button></div>
+    </section>
+
+    <!-- 고른 하나 -->
+    <section class="lower-step center" data-lstep="2" hidden>
+      <p class="muted small">오늘의 하나</p>
+      <p class="first-step" id="lower-one"></p>
+      <p class="muted">이것만 해도, 조금만 해도 충분해요.</p>
+      <div class="step-actions center-actions">
+        <button class="btn-main btn-big" id="lower-to-start">첫걸음 만들기</button>
+        <button class="btn-soft btn-big" data-lower-rest>오늘은 여기까지</button>
+      </div>
+      <button class="text-btn" id="lower-change">다시 고르기</button>
+    </section>
+
+    <!-- 오늘은 여기까지 -->
+    <section class="lower-step center lower-end" data-lstep="3" hidden>
+      <h2 class="step-title">오늘 쉬기로 한 것도<br>내가 고른 선택이에요</h2>
+      <p class="muted">충분히 애썼어요. 천천히 쉬어 가요.</p>
+      <div class="step-actions center-actions">
+        <a href="#/" class="btn-soft btn-big">홈으로</a>
+      </div>
     </section>
   </main>
 
